@@ -35,7 +35,7 @@ def main():
             into the dataset, the feature engineering process, and the model's performance. Whether you're a data enthusiast 
             or a healthcare professional, this app will help you understand the impact of various factors on diabetes prediction."""
         )
-        st.image("D:/MachineLearning2/a5qp_qxmg_230817.jpg", use_column_width=True, caption="Understanding Diabetes")
+        st.image("a5qp_qxmg_230817.jpg", use_column_width=True, caption="Understanding Diabetes")
 
     with prediction_tab:
         st.header("Diabetes Prediction")
