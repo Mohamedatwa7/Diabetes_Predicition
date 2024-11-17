@@ -6,10 +6,10 @@ import seaborn as sns
 from PIL import Image
 
 # Load the trained model and scaler
-with open('D:\\MachineLearning2\\diabetes_model.pkl', 'rb') as file:
+with open('diabetes_model.pkl', 'rb') as file:
     classifier = pickle.load(file)
 
-with open('D:\\MachineLearning2\\diabetes_scaler.pkl', 'rb') as file:
+with open('diabetes_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
 # Helper function for prediction
@@ -107,7 +107,7 @@ def main():
 
     with eda_tab:
         st.header("Exploratory Data Analysis")
-        diabetes = pd.read_csv("D:/Users/moham/Downloads/diabetes.csv")
+        diabetes = pd.read_csv("diabetes.csv")
         st.write("### Dataset Overview")
         st.dataframe(diabetes.head())
 
