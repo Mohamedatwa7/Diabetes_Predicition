@@ -1,5 +1,5 @@
-joblib==1.3.2
-scikit-learn==1.4.2
-pickleshare==0.7.5
-streamlit==1.39.0
-matplotlib==3.5.2
+joblib
+scikit-learn
+pickleshare
+streamlit
+matplotlib
