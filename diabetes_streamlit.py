@@ -209,21 +209,6 @@ def main():
         ConfusionMatrixDisplay(cm, display_labels=["Non-Diabetic", "Diabetic"]).plot(ax=ax, cmap="Blues")
         st.pyplot(fig)
 
-        # ROC Curve
-        st.write("### ROC Curve")
-        y_pred_prob = classifier.predict_proba(scaler.transform(X_test))[:, 1]
-        fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
-        auc_score = roc_auc_score(y_test, y_pred_prob)
-
-        fig, ax = plt.subplots()
-        ax.plot(fpr, tpr, label=f"ROC Curve (AUC = {auc_score:.2f})")
-        ax.plot([0, 1], [0, 1], 'k--', label="Random Guess")
-        ax.set_title("Receiver Operating Characteristic (ROC) Curve")
-        ax.set_xlabel("False Positive Rate")
-        ax.set_ylabel("True Positive Rate")
-        ax.legend(loc="lower right")
-        st.pyplot(fig)
-
 
 if __name__ == '__main__':
     main()
