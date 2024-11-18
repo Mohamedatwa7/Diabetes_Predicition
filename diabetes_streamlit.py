@@ -3,13 +3,15 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.metrics import confusion_matrix, roc_curve, roc_auc_score, ConfusionMatrixDisplay
+from sklearn.tree import plot_tree
 from PIL import Image
 
 # Load the trained model and scaler
-with open('diabetes_model.pkl', 'rb') as file:
+with open('D:\MachineLearning2\diabetes_model.pkl', 'rb') as file:
     classifier = pickle.load(file)
 
-with open('diabetes_scaler.pkl', 'rb') as file:
+with open('D:\MachineLearning2\diabetes_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
 # Helper function for prediction
@@ -23,11 +25,12 @@ def prediction(input_data):
 def main():
     st.set_page_config(page_title="Diabetes Prediction App", layout="wide")
 
-    # Add a home page with an explanation of the project
-    home_tab, prediction_tab, eda_tab, feature_engineering_tab, dataset_desc_tab, model_insights_tab = st.tabs([
-        "Home", "Prediction", "EDA", "Feature Engineering", "Dataset Description", "Model Insights"
+    # Tabs for different sections
+    home_tab, prediction_tab, eda_tab, feature_engineering_tab, dataset_desc_tab, model_insights_tab, evaluation_tab = st.tabs([
+        "Home", "Prediction", "EDA", "Feature Engineering", "Dataset Description", "Model Insights", "Evaluation"
     ])
 
+    # Home Tab
     with home_tab:
         st.title("Welcome to the Diabetes Prediction App")
         st.markdown(
@@ -37,6 +40,7 @@ def main():
         )
         st.image("a5qp_qxmg_230817.jpg", use_column_width=True, caption="Understanding Diabetes")
 
+    # Prediction Tab
     with prediction_tab:
         st.header("Diabetes Prediction")
         st.sidebar.header("Input Features")
@@ -105,9 +109,10 @@ def main():
                 )
                 st.balloons()
 
+    # EDA Tab
     with eda_tab:
         st.header("Exploratory Data Analysis")
-        diabetes = pd.read_csv("diabetes.csv")
+        diabetes = pd.read_csv("D:/Users/moham/Downloads/diabetes.csv")
         st.write("### Dataset Overview")
         st.dataframe(diabetes.head())
 
@@ -130,18 +135,18 @@ def main():
         ax.set_title("BMI vs Glucose")
         st.pyplot(fig)
 
-        st.write("#### Age Distribution by Outcome")
-        fig, ax = plt.subplots()
-        sns.histplot(data=diabetes, x="Age", hue="Outcome", kde=True, element="step", bins=20, ax=ax)
-        ax.set_title("Age Distribution by Outcome")
+        st.write("#### Decision Tree Visualization")
+        fig, ax = plt.subplots(figsize=(20, 10))
+        plot_tree(
+            classifier.estimators_[0],
+            feature_names=classifier.feature_names_in_,
+            class_names=["Non-Diabetic", "Diabetic"],
+            filled=True,
+            max_depth=3
+        )
         st.pyplot(fig)
 
-        st.write("#### Boxplot of BMI by Outcome")
-        fig, ax = plt.subplots()
-        sns.boxplot(data=diabetes, x="Outcome", y="BMI", palette="coolwarm", ax=ax)
-        ax.set_title("Boxplot of BMI by Outcome")
-        st.pyplot(fig)
-
+    # Feature Engineering Tab
     with feature_engineering_tab:
         st.header("Feature Engineering")
         st.write("### Derived Features")
@@ -151,11 +156,13 @@ def main():
             "* **Categorical Features**: Age groups and BMI categories."
         )
 
+    # Dataset Description Tab
     with dataset_desc_tab:
         st.header("Dataset Description")
         st.write("### Descriptive Statistics")
         st.dataframe(diabetes.describe())
 
+    # Model Insights Tab
     with model_insights_tab:
         st.header("Model Insights")
         st.write("### Feature Importances")
@@ -165,6 +172,58 @@ def main():
         }).sort_values(by="Importance", ascending=False)
         st.bar_chart(feature_importances.set_index("Feature"))
         st.markdown("The bar chart shows the importance of each feature in the model.")
+
+    # Evaluation Tab
+    with evaluation_tab:
+        st.header("Model Evaluation")
+
+        # Load the dataset
+        diabetes = pd.read_csv("D:/Users/moham/Downloads/diabetes.csv")
+        
+        # Generate derived features for X_test to match training features
+        diabetes["Glucose_BMI"] = diabetes["Glucose"] * diabetes["BMI"]
+        diabetes["Age_Pedigree"] = diabetes["Age"] * diabetes["DiabetesPedigreeFunction"]
+
+        diabetes["AgeGroup_30-40"] = diabetes["Age"].apply(lambda x: 1 if 30 <= x < 40 else 0)
+        diabetes["AgeGroup_40-50"] = diabetes["Age"].apply(lambda x: 1 if 40 <= x < 50 else 0)
+        diabetes["AgeGroup_50-60"] = diabetes["Age"].apply(lambda x: 1 if 50 <= x < 60 else 0)
+        diabetes["AgeGroup_60-80"] = diabetes["Age"].apply(lambda x: 1 if 60 <= x <= 80 else 0)
+
+        diabetes["BMI_Category_Normal"] = diabetes["BMI"].apply(lambda x: 1 if 18.5 <= x < 25 else 0)
+        diabetes["BMI_Category_Overweight"] = diabetes["BMI"].apply(lambda x: 1 if 25 <= x < 30 else 0)
+        diabetes["BMI_Category_Obese"] = diabetes["BMI"].apply(lambda x: 1 if 30 <= x < 40 else 0)
+        diabetes["BMI_Category_Severely Obese"] = diabetes["BMI"].apply(lambda x: 1 if x >= 40 else 0)  # Match exact name
+
+        # Retain only features used during training
+        feature_columns = classifier.feature_names_in_
+        X_test = diabetes[feature_columns]
+        y_test = diabetes["Outcome"]  # Target column
+
+        # Predict and evaluate
+        y_pred = classifier.predict(scaler.transform(X_test))
+
+        # Confusion Matrix
+        st.write("### Confusion Matrix")
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots()
+        ConfusionMatrixDisplay(cm, display_labels=["Non-Diabetic", "Diabetic"]).plot(ax=ax, cmap="Blues")
+        st.pyplot(fig)
+
+        # ROC Curve
+        st.write("### ROC Curve")
+        y_pred_prob = classifier.predict_proba(scaler.transform(X_test))[:, 1]
+        fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
+        auc_score = roc_auc_score(y_test, y_pred_prob)
+
+        fig, ax = plt.subplots()
+        ax.plot(fpr, tpr, label=f"ROC Curve (AUC = {auc_score:.2f})")
+        ax.plot([0, 1], [0, 1], 'k--', label="Random Guess")
+        ax.set_title("Receiver Operating Characteristic (ROC) Curve")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.legend(loc="lower right")
+        st.pyplot(fig)
+
 
 if __name__ == '__main__':
     main()
