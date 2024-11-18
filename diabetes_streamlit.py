@@ -173,42 +173,5 @@ def main():
         st.bar_chart(feature_importances.set_index("Feature"))
         st.markdown("The bar chart shows the importance of each feature in the model.")
 
-    # Evaluation Tab
-    with evaluation_tab:
-        st.header("Model Evaluation")
-
-        # Load the dataset
-        diabetes = pd.read_csv("diabetes.csv")
-        
-        # Generate derived features for X_test to match training features
-        diabetes["Glucose_BMI"] = diabetes["Glucose"] * diabetes["BMI"]
-        diabetes["Age_Pedigree"] = diabetes["Age"] * diabetes["DiabetesPedigreeFunction"]
-
-        diabetes["AgeGroup_30-40"] = diabetes["Age"].apply(lambda x: 1 if 30 <= x < 40 else 0)
-        diabetes["AgeGroup_40-50"] = diabetes["Age"].apply(lambda x: 1 if 40 <= x < 50 else 0)
-        diabetes["AgeGroup_50-60"] = diabetes["Age"].apply(lambda x: 1 if 50 <= x < 60 else 0)
-        diabetes["AgeGroup_60-80"] = diabetes["Age"].apply(lambda x: 1 if 60 <= x <= 80 else 0)
-
-        diabetes["BMI_Category_Normal"] = diabetes["BMI"].apply(lambda x: 1 if 18.5 <= x < 25 else 0)
-        diabetes["BMI_Category_Overweight"] = diabetes["BMI"].apply(lambda x: 1 if 25 <= x < 30 else 0)
-        diabetes["BMI_Category_Obese"] = diabetes["BMI"].apply(lambda x: 1 if 30 <= x < 40 else 0)
-        diabetes["BMI_Category_Severely Obese"] = diabetes["BMI"].apply(lambda x: 1 if x >= 40 else 0)  # Match exact name
-
-        # Retain only features used during training
-        feature_columns = classifier.feature_names_in_
-        X_test = diabetes[feature_columns]
-        y_test = diabetes["Outcome"]  # Target column
-
-        # Predict and evaluate
-        y_pred = classifier.predict(scaler.transform(X_test))
-
-        # Confusion Matrix
-        st.write("### Confusion Matrix")
-        cm = confusion_matrix(y_test, y_pred)
-        fig, ax = plt.subplots()
-        ConfusionMatrixDisplay(cm, display_labels=["Non-Diabetic", "Diabetic"]).plot(ax=ax, cmap="Blues")
-        st.pyplot(fig)
-
-
 if __name__ == '__main__':
     main()
