@@ -26,8 +26,8 @@ def main():
     st.set_page_config(page_title="Diabetes Prediction App", layout="wide")
 
     # Tabs for different sections
-    home_tab, prediction_tab, eda_tab, feature_engineering_tab, dataset_desc_tab, model_insights_tab, evaluation_tab = st.tabs([
-        "Home", "Prediction", "EDA", "Feature Engineering", "Dataset Description", "Model Insights", "Evaluation"
+    home_tab, prediction_tab, eda_tab, feature_engineering_tab, dataset_desc_tab, model_insights_tab = st.tabs([
+        "Home", "Prediction", "EDA", "Feature Engineering", "Dataset Description", "Model Insights"
     ])
 
     # Home Tab
